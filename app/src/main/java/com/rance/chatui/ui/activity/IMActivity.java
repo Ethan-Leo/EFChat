@@ -74,6 +74,7 @@ public class IMActivity extends AppCompatActivity {
     //录音相关
     int animationRes = 0;
     int res = 0;
+    int index = 0;
     AnimationDrawable animationDrawable = null;
     private ImageView animView;
 
@@ -288,13 +289,13 @@ public class IMActivity extends AppCompatActivity {
         messageInfos = new ArrayList<>();
 
         MessageInfo messageInfo = new MessageInfo();
-        messageInfo.setContent("你好，欢迎使用Rance的聊天界面框架");
+        messageInfo.setContent("Welcome to the EF AI Chat Bot");
         messageInfo.setFileType(Constants.CHAT_FILE_TYPE_TEXT);
         messageInfo.setType(Constants.CHAT_ITEM_TYPE_LEFT);
         messageInfo.setHeader("http://img0.imgtn.bdimg.com/it/u=401967138,750679164&fm=26&gp=0.jpg");
         messageInfos.add(messageInfo);
 
-        MessageInfo messageInfo1 = new MessageInfo();
+        /*MessageInfo messageInfo1 = new MessageInfo();
         messageInfo1.setFilepath("http://www.trueme.net/bb_midi/welcome.wav");
         messageInfo1.setVoiceTime(3000);
         messageInfo1.setFileType(Constants.CHAT_FILE_TYPE_VOICE);
@@ -311,12 +312,12 @@ public class IMActivity extends AppCompatActivity {
         messageInfos.add(messageInfo2);
 
         MessageInfo messageInfo3 = new MessageInfo();
-        messageInfo3.setContent("[微笑][色][色][色]");
+        messageInfo3.setContent("Please ask me the question");
         messageInfo3.setFileType(Constants.CHAT_FILE_TYPE_TEXT);
         messageInfo3.setType(Constants.CHAT_ITEM_TYPE_RIGHT);
         messageInfo3.setSendState(Constants.CHAT_ITEM_SEND_ERROR);
         messageInfo3.setHeader("http://img.dongqiudi.com/uploads/avatar/2014/10/20/8MCTb0WBFG_thumb_1413805282863.jpg");
-        messageInfos.add(messageInfo3);
+        messageInfos.add(messageInfo3);*/
 
         chatAdapter.addAll(messageInfos);
     }
@@ -339,7 +340,7 @@ public class IMActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             public void run() {
                 MessageInfo message = new MessageInfo();
-                message.setContent("这是模拟消息回复");
+                message.setContent("Apply from AI " + index++);
                 message.setType(Constants.CHAT_ITEM_TYPE_LEFT);
                 message.setFileType(Constants.CHAT_FILE_TYPE_TEXT);
                 message.setHeader("http://img0.imgtn.bdimg.com/it/u=401967138,750679164&fm=26&gp=0.jpg");
