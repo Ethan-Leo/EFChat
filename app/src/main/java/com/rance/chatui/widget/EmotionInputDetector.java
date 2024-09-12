@@ -183,7 +183,7 @@ public class EmotionInputDetector {
         return this;
     }
 
-    public EmotionInputDetector bindToSendButton(View sendButton) {
+    public EmotionInputDetector bindToSendButton(View sendButton, ISendCallback callback) {
         mSendButton = sendButton;
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -191,9 +191,11 @@ public class EmotionInputDetector {
                 mAddButton.setVisibility(View.VISIBLE);
                 mSendButton.setVisibility(View.GONE);
                 MessageInfo messageInfo = new MessageInfo();
-                messageInfo.setContent(mEditText.getText().toString());
+                String message = mEditText.getText().toString();
+                messageInfo.setContent(message);
                 messageInfo.setFileType(Constants.CHAT_FILE_TYPE_TEXT);
                 EventBus.getDefault().post(messageInfo);
+                callback.messageSend(message);
                 mEditText.setText("");
             }
         });

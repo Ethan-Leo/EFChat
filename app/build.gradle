@@ -34,4 +34,15 @@ dependencies {
     implementation 'com.labo.kaji:relativepopupwindow:0.3.1'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     testImplementation 'junit:junit:4.12'
+    implementation 'com.squareup.okhttp3:okhttp:4.2.1'
+    api('com.squareup.retrofit2:retrofit:2.1.0') {
+        exclude group:'com.google.code.gson', module: 'gson'
+
+        // exclude Retrofit’s OkHttp peer-dependency module and define your own module import
+        exclude module: 'okhttp'
+    }
+    implementation ('com.squareup.retrofit2:converter-gson:2.1.0') {
+        exclude module: 'gson'
+    }
+    implementation "com.google.code.gson:gson:2.8.5"
 }

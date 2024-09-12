@@ -26,6 +26,9 @@ import com.rance.chatui.adapter.CommonFragmentPagerAdapter;
 import com.rance.chatui.enity.FullImageInfo;
 import com.rance.chatui.enity.Link;
 import com.rance.chatui.enity.MessageInfo;
+import com.rance.chatui.service.IRequestCallback;
+import com.rance.chatui.service.IService;
+import com.rance.chatui.service.ServiceImpl;
 import com.rance.chatui.ui.fragment.ChatEmotionFragment;
 import com.rance.chatui.ui.fragment.ChatFunctionFragment;
 import com.rance.chatui.util.Constants;
@@ -34,6 +37,7 @@ import com.rance.chatui.util.MediaManager;
 import com.rance.chatui.util.MessageCenter;
 import com.rance.chatui.widget.ChatContextMenu;
 import com.rance.chatui.widget.EmotionInputDetector;
+import com.rance.chatui.widget.ISendCallback;
 import com.rance.chatui.widget.NoScrollViewPager;
 import com.rance.chatui.widget.StateButton;
 
@@ -50,7 +54,7 @@ import java.util.List;
  * 作者：Rance on 2016/11/29 10:47
  * 邮箱：rance935@163.com
  */
-public class IMActivity extends AppCompatActivity {
+public class IMActivity extends AppCompatActivity implements IRequestCallback, ISendCallback {
     private static final String TAG = "IMActivity";
     RecyclerView chatList;
     ImageView emotionVoice;
@@ -77,6 +81,7 @@ public class IMActivity extends AppCompatActivity {
     int index = 0;
     AnimationDrawable animationDrawable = null;
     private ImageView animView;
+    private IService service;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,6 +91,12 @@ public class IMActivity extends AppCompatActivity {
         EventBus.getDefault().register(this);
         initWidget();
         handleIncomeAction();
+        initializeService();
+    }
+
+    private void initializeService() {
+        service = new ServiceImpl();
+        service.initialize();
     }
 
     private void findViewByIds() {
@@ -109,6 +120,27 @@ public class IMActivity extends AppCompatActivity {
         MessageCenter.handleIncoming(bundle, getIntent().getType(), this);
     }
 
+    @Override
+    public void onSuccess(String response) {
+        MessageInfo messageInfo = new MessageInfo();
+        MessageEventBus(messageInfo, response);
+    }
+
+    @Override
+    public void onFailed(String error) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(IMActivity.this, error, Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    @Override
+    public void messageSend(String message) {
+        service.sendRequest(message, this);
+    }
+
     private void initWidget() {
         fragments = new ArrayList<>();
         chatEmotionFragment = new ChatEmotionFragment();
@@ -126,7 +158,7 @@ public class IMActivity extends AppCompatActivity {
                 .bindToEditText(editText)
                 .bindToEmotionButton(emotionButton)
                 .bindToAddButton(emotionAdd)
-                .bindToSendButton(emotionSend)
+                .bindToSendButton(emotionSend, this)
                 .bindToVoiceButton(emotionVoice)
                 .bindToVoiceText(voiceText)
                 .build();
@@ -323,7 +355,11 @@ public class IMActivity extends AppCompatActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void MessageEventBus(final MessageInfo messageInfo) {
+    public void emptyImplementation(final MessageInfo messageInfo) {
+
+    }
+
+    public void MessageEventBus(final MessageInfo messageInfo, final String response) {
         messageInfo.setHeader("http://img.dongqiudi.com/uploads/avatar/2014/10/20/8MCTb0WBFG_thumb_1413805282863.jpg");
         messageInfo.setType(Constants.CHAT_ITEM_TYPE_RIGHT);
         messageInfo.setSendState(Constants.CHAT_ITEM_SENDING);
@@ -336,11 +372,11 @@ public class IMActivity extends AppCompatActivity {
                 messageInfo.setSendState(Constants.CHAT_ITEM_SEND_SUCCESS);
                 chatAdapter.notifyDataSetChanged();
             }
-        }, 2000);
+        }, 500);
         new Handler().postDelayed(new Runnable() {
             public void run() {
                 MessageInfo message = new MessageInfo();
-                message.setContent("Apply from AI " + index++);
+                message.setContent(response);
                 message.setType(Constants.CHAT_ITEM_TYPE_LEFT);
                 message.setFileType(Constants.CHAT_FILE_TYPE_TEXT);
                 message.setHeader("http://img0.imgtn.bdimg.com/it/u=401967138,750679164&fm=26&gp=0.jpg");
