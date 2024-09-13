@@ -122,8 +122,7 @@ public class IMActivity extends AppCompatActivity implements IRequestCallback, I
 
     @Override
     public void onSuccess(String response) {
-        MessageInfo messageInfo = new MessageInfo();
-        MessageEventBus(messageInfo, response);
+        sendResponse(response);
     }
 
     @Override
@@ -355,12 +354,7 @@ public class IMActivity extends AppCompatActivity implements IRequestCallback, I
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void emptyImplementation(final MessageInfo messageInfo) {
-
-    }
-
-    public void MessageEventBus(final MessageInfo messageInfo, final String response) {
-        messageInfo.setHeader("http://img.dongqiudi.com/uploads/avatar/2014/10/20/8MCTb0WBFG_thumb_1413805282863.jpg");
+    public void sendMessage(final MessageInfo messageInfo) {
         messageInfo.setType(Constants.CHAT_ITEM_TYPE_RIGHT);
         messageInfo.setSendState(Constants.CHAT_ITEM_SENDING);
         messageInfos.add(messageInfo);
@@ -373,18 +367,20 @@ public class IMActivity extends AppCompatActivity implements IRequestCallback, I
                 chatAdapter.notifyDataSetChanged();
             }
         }, 500);
+    }
+
+    public void sendResponse( final String response) {
         new Handler().postDelayed(new Runnable() {
             public void run() {
                 MessageInfo message = new MessageInfo();
                 message.setContent(response);
                 message.setType(Constants.CHAT_ITEM_TYPE_LEFT);
                 message.setFileType(Constants.CHAT_FILE_TYPE_TEXT);
-                message.setHeader("http://img0.imgtn.bdimg.com/it/u=401967138,750679164&fm=26&gp=0.jpg");
                 messageInfos.add(message);
                 chatAdapter.notifyItemInserted(messageInfos.size() - 1);
                 chatList.scrollToPosition(chatAdapter.getItemCount() - 1);
             }
-        }, 3000);
+        }, 500);
     }
 
     @Override
