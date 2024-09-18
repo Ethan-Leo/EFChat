@@ -9,30 +9,26 @@ import android.util.Log;
 import java.io.File;
 import java.io.IOException;
 
-/**
- * 作者：Rance on 2016/11/29 10:47
- * 邮箱：rance935@163.com
- */
 public class AudioRecorderUtils {
 
-    //文件路径
+    //file path
     private String filePath;
-    //文件夹路径
+    //folder path
     private String FolderPath;
 
     private MediaRecorder mMediaRecorder;
-    private final String TAG = "fan";
-    public static final int MAX_LENGTH = 1000 * 60 * 10;// 最大录音时长1000*60*10;
+    private final String TAG = "EFChat";
+    public static final int MAX_LENGTH = 1000 * 60 * 10;// Max recording time up to 1000*60*10;
 
     private OnAudioStatusUpdateListener audioStatusUpdateListener;
 
     /**
-     * 文件存储默认sdcard/cadyd/record
+     * file is saved as sdcard/cadyd/record by default
      */
     public AudioRecorderUtils() {
 
-        //默认保存路径为/sdcard/record/下
-        this(Environment.getExternalStorageDirectory() + "/cadyd/record/");
+        //Default location of the file is in /sdcard/record/
+        this(Environment.getStorageDirectory() + "/cadyd/record/");
     }
 
     public AudioRecorderUtils(String filePath) {
@@ -48,8 +44,8 @@ public class AudioRecorderUtils {
     private long endTime;
 
     /**
-     * 开始录音 使用amr格式
-     * 录音文件
+     * Start recording using amr format
+     * recording file
      *
      * @return
      */
@@ -58,30 +54,30 @@ public class AudioRecorderUtils {
             audioStatusUpdateListener.onError();
             return;
         }
-        // 开始录音
-        /* ①Initial：实例化MediaRecorder对象 */
+        // Start to record
+        /* ①Initial：Create the instance of Object MediaRecorder */
         if (mMediaRecorder == null)
             mMediaRecorder = new MediaRecorder();
         try {
             /* ②setAudioSource/setVedioSource */
-            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);// 设置麦克风
-            /* ②设置音频文件的编码：AAC/AMR_NB/AMR_MB/Default 声音的（波形）的采样 */
+            mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);// Set Microphone
+            /* ②set the encoding mode of audio file：AAC/AMR_NB/AMR_MB/Default sample of sound (sound wave) */
             mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
             /*
-             * ②设置输出文件的格式：THREE_GPP/MPEG-4/RAW_AMR/Default THREE_GPP(3gp格式
-             * ，H263视频/ARM音频编码)、MPEG-4、RAW_AMR(只支持音频且音频编码要求为AMR_NB)
+             * ②Set the format of the exported file：THREE_GPP/MPEG-4/RAW_AMR/Default THREE_GPP(3gp
+             * ，H263/ARM)、MPEG-4、RAW_AMR(Only supports audio and the encoding of it should be AMR_NB)
              */
             mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
             filePath = FolderPath + Utils.getCurrentTime() + ".amr";
-            /* ③准备 */
+            /* ③Ready */
             mMediaRecorder.setOutputFile(filePath);
             mMediaRecorder.setMaxDuration(MAX_LENGTH);
             mMediaRecorder.prepare();
-            /* ④开始 */
+            /* ④Start */
             mMediaRecorder.start();
             // AudioRecord audioRecord.
-            /* 获取开始时间* */
+            /* record the starting time* */
             startTime = System.currentTimeMillis();
             updateMicStatus();
             Log.e("fan", "startTime" + startTime);
@@ -95,13 +91,12 @@ public class AudioRecorderUtils {
     }
 
     /**
-     * 停止录音
+     * Stop recording
      */
     public long stopRecord() {
         if (mMediaRecorder == null)
             return 0L;
         endTime = System.currentTimeMillis();
-        //设置后不会崩
         mMediaRecorder.setOnErrorListener(null);
         mMediaRecorder.setPreviewDisplay(null);
         try {
@@ -123,7 +118,7 @@ public class AudioRecorderUtils {
     }
 
     /**
-     * 取消录音
+     * Cancel recording
      */
     public void cancelRecord() {
         if (mMediaRecorder != null) {
@@ -148,7 +143,7 @@ public class AudioRecorderUtils {
 
 
     private int BASE = 1;
-    private int SPACE = 100;// 间隔取样时间
+    private int SPACE = 100;// sampling time gap
 
     public void setOnAudioStatusUpdateListener(OnAudioStatusUpdateListener audioStatusUpdateListener) {
         this.audioStatusUpdateListener = audioStatusUpdateListener;
