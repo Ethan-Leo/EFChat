@@ -11,7 +11,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -224,9 +223,18 @@ public class EmotionInputDetector {
         return this;
     }
 
-    public EmotionInputDetector bindToVoiceText(TextView voiceText) {
+    public EmotionInputDetector bindToVoiceText(TextView voiceText, IRecordCallback recordingCallback) {
         mVoiceText = voiceText;
-        mVoiceText.setOnTouchListener(new View.OnTouchListener() {
+        mVoiceText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(recordingCallback != null) {
+                    recordingCallback.onRecordingStart();
+                }
+            }
+        });
+
+        /*mVoiceText.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 // 获得x轴坐标
@@ -270,9 +278,11 @@ public class EmotionInputDetector {
                 }
                 return true;
             }
-        });
+        });*/
         return this;
     }
+
+
 
     private boolean wantToCancel(int x, int y) {
         // 超过按钮的宽度

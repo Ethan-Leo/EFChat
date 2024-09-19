@@ -1,6 +1,8 @@
 package com.rance.chatui.ui.activity;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.speech.RecognizerIntent;
 import android.graphics.drawable.AnimationDrawable;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -12,6 +14,7 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -37,6 +40,7 @@ import com.rance.chatui.util.MediaManager;
 import com.rance.chatui.util.MessageCenter;
 import com.rance.chatui.widget.ChatContextMenu;
 import com.rance.chatui.widget.EmotionInputDetector;
+import com.rance.chatui.widget.IRecordCallback;
 import com.rance.chatui.widget.ISendCallback;
 import com.rance.chatui.widget.NoScrollViewPager;
 import com.rance.chatui.widget.StateButton;
@@ -48,13 +52,9 @@ import org.greenrobot.eventbus.ThreadMode;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
-
-/**
- * 作者：Rance on 2016/11/29 10:47
- * 邮箱：rance935@163.com
- */
-public class IMActivity extends AppCompatActivity implements IRequestCallback, ISendCallback {
+public class IMActivity extends AppCompatActivity implements IRequestCallback, ISendCallback, IRecordCallback {
     private static final String TAG = "IMActivity";
     RecyclerView chatList;
     ImageView emotionVoice;
@@ -82,6 +82,7 @@ public class IMActivity extends AppCompatActivity implements IRequestCallback, I
     AnimationDrawable animationDrawable = null;
     private ImageView animView;
     private IService service;
+    private static final int REQ_CODE_SPEECH_INPUT = 101;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,6 +141,11 @@ public class IMActivity extends AppCompatActivity implements IRequestCallback, I
         service.sendRequest(message, this);
     }
 
+    @Override
+    public void onRecordingStart() {
+        promptSpeechInput();
+    }
+
     private void initWidget() {
         fragments = new ArrayList<>();
         chatEmotionFragment = new ChatEmotionFragment();
@@ -159,7 +165,7 @@ public class IMActivity extends AppCompatActivity implements IRequestCallback, I
                 .bindToAddButton(emotionAdd)
                 .bindToSendButton(emotionSend, this)
                 .bindToVoiceButton(emotionVoice)
-                .bindToVoiceText(voiceText)
+                .bindToVoiceText(voiceText, this)
                 .build();
 
         GlobalOnItemClickManagerUtils globalOnItemClickListener = GlobalOnItemClickManagerUtils.getInstance(this);
@@ -195,6 +201,39 @@ public class IMActivity extends AppCompatActivity implements IRequestCallback, I
         });
         chatAdapter.addItemClickListener(itemClickListener);
         LoadData();
+    }
+
+    private void promptSpeechInput() {
+        try {
+            Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speech input to text...");
+            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
+        } catch (ActivityNotFoundException ex) {
+            ex.printStackTrace();
+            Log.e("EFChat", ex.getMessage());
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case REQ_CODE_SPEECH_INPUT: {
+                if (resultCode == RESULT_OK && null != data) {
+                    ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    // textView.setText(result.get(0));
+                    MessageInfo messageInfo = new MessageInfo();
+                    String message = result.get(0);
+                    messageInfo.setContent(message);
+                    messageInfo.setFileType(Constants.CHAT_FILE_TYPE_TEXT);
+                    EventBus.getDefault().post(messageInfo);
+                    Toast.makeText(this, result.get(0), Toast.LENGTH_LONG).show();
+                }
+                break;
+            }
+        }
     }
 
     /**
@@ -314,7 +353,7 @@ public class IMActivity extends AppCompatActivity implements IRequestCallback, I
     };
 
     /**
-     * 构造聊天数据
+     * Build chat data
      */
     private void LoadData() {
         messageInfos = new ArrayList<>();
